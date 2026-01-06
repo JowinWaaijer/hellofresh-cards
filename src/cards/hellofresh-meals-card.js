@@ -5,8 +5,7 @@
 
 import { baseCardStyles, COLORS, FONTS, SPACING, BORDERS, SHADOWS } from '../styles/hellofresh-styles.js';
 import { formatDuration, getTagClass, truncate, fireEvent } from '../utils/helpers.js';
-
-const CARD_VERSION = '1.0.0';
+import { VERSION, logCardVersion } from '../version.js';
 
 class HelloFreshMealsCard extends HTMLElement {
   constructor() {
@@ -428,7 +427,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/jowinwaaijer/hellofresh-cards',
 });
 
-console.info(`%c HELLOFRESH-MEALS-CARD %c ${CARD_VERSION} `,
-  'color: white; background: #067A46; font-weight: bold;',
-  'color: #067A46; background: white; font-weight: bold;'
-);
+logCardVersion('HELLOFRESH-MEALS-CARD');
