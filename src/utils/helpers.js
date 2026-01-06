@@ -105,6 +105,15 @@ export function getStatusClass(status) {
 }
 
 /**
+ * Check if sub_status is effectively empty
+ * @param {string} subStatus - Sub status value
+ * @returns {boolean} True if sub_status is empty/null
+ */
+function isEmptySubStatus(subStatus) {
+  return !subStatus || subStatus === 'NULL' || subStatus === 'null' || subStatus === 'None';
+}
+
+/**
  * Get a friendly status label
  * @param {string} status - Delivery status
  * @param {string} subStatus - Delivery sub status
@@ -116,7 +125,7 @@ export function getStatusLabel(status, subStatus, deliveryDate) {
     if (subStatus === 'RATING') return 'Wacht op beoordeling';
     if (subStatus === 'COOK_IT') return 'Klaar om te koken!';
     // DELIVERED without sub_status but delivery date is today or future = in transit
-    if (!subStatus && deliveryDate) {
+    if (isEmptySubStatus(subStatus) && deliveryDate) {
       const delivery = new Date(deliveryDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -140,7 +149,7 @@ export function getStatusLabel(status, subStatus, deliveryDate) {
  */
 export function isInTransit(status, subStatus, deliveryDate) {
   if (status !== 'DELIVERED') return false;
-  if (subStatus) return false; // Has sub_status = actually delivered
+  if (!isEmptySubStatus(subStatus)) return false; // Has real sub_status = actually delivered
   if (!deliveryDate) return false;
 
   const delivery = new Date(deliveryDate);
