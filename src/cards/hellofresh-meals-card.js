@@ -9,11 +9,9 @@ import { formatDuration, getTagClass, truncate, fireEvent } from '../utils/helpe
 const CARD_VERSION = '1.0.0';
 
 class HelloFreshMealsCard extends HTMLElement {
-  static get properties() {
-    return {
-      hass: {},
-      config: {},
-    };
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
   }
 
   set hass(hass) {
@@ -35,6 +33,7 @@ class HelloFreshMealsCard extends HTMLElement {
       max_meals: config.max_meals || 0, // 0 = show all
       ...config,
     };
+    this._updateCard();
   }
 
   getCardSize() {
@@ -42,9 +41,6 @@ class HelloFreshMealsCard extends HTMLElement {
   }
 
   connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-    }
     this._updateCard();
   }
 
@@ -401,55 +397,22 @@ class HelloFreshMealsCard extends HTMLElement {
 // Card Editor
 class HelloFreshMealsCardEditor extends HTMLElement {
   setConfig(config) {
-    this._config = config;
+    this._config = { ...config };
     this._render();
-  }
-
-  _render() {
-    this.innerHTML = `
-      <div style="padding: 16px;">
-        <ha-textfield
-          label="Titel"
-          .value="${this._config.title || 'Maaltijden deze week'}"
-          .configValue="${'title'}"
-        ></ha-textfield>
-
-        <ha-entity-picker
-          .hass="${this._hass}"
-          .value="${this._config.entity || ''}"
-          .configValue="${'entity'}"
-          domain-filter="sensor"
-          label="Entity"
-          allow-custom-entity
-        ></ha-entity-picker>
-
-        <ha-formfield label="Toon tags">
-          <ha-switch
-            .checked="${this._config.show_tags !== false}"
-            .configValue="${'show_tags'}"
-          ></ha-switch>
-        </ha-formfield>
-
-        <ha-formfield label="Toon calorieën">
-          <ha-switch
-            .checked="${this._config.show_calories !== false}"
-            .configValue="${'show_calories'}"
-          ></ha-switch>
-        </ha-formfield>
-
-        <ha-formfield label="Toon bereidingstijd">
-          <ha-switch
-            .checked="${this._config.show_prep_time !== false}"
-            .configValue="${'show_prep_time'}"
-          ></ha-switch>
-        </ha-formfield>
-      </div>
-    `;
   }
 
   set hass(hass) {
     this._hass = hass;
     this._render();
+  }
+
+  _render() {
+    if (!this._config) return;
+    this.innerHTML = `
+      <div style="padding: 16px;">
+        <p>Entity: ${this._config.entity || 'niet ingesteld'}</p>
+      </div>
+    `;
   }
 }
 

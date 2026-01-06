@@ -10,11 +10,9 @@ import { formatDuration, getTagClass } from '../utils/helpers.js';
 const CARD_VERSION = '1.0.0';
 
 class HelloFreshRecipeCard extends HTMLElement {
-  static get properties() {
-    return {
-      hass: {},
-      config: {},
-    };
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
   }
 
   set hass(hass) {
@@ -33,6 +31,7 @@ class HelloFreshRecipeCard extends HTMLElement {
       show_recipe_button: config.show_recipe_button !== false,
       ...config,
     };
+    this._updateCard();
   }
 
   getCardSize() {
@@ -40,9 +39,6 @@ class HelloFreshRecipeCard extends HTMLElement {
   }
 
   connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-    }
     this._updateCard();
   }
 
@@ -474,49 +470,22 @@ class HelloFreshRecipeCard extends HTMLElement {
 // Card Editor
 class HelloFreshRecipeCardEditor extends HTMLElement {
   setConfig(config) {
-    this._config = config;
+    this._config = { ...config };
     this._render();
-  }
-
-  _render() {
-    this.innerHTML = `
-      <div style="padding: 16px;">
-        <ha-entity-picker
-          .hass="${this._hass}"
-          .value="${this._config.entity || ''}"
-          .configValue="${'entity'}"
-          domain-filter="sensor"
-          label="Entity"
-          allow-custom-entity
-        ></ha-entity-picker>
-
-        <ha-formfield label="Toon voedingswaarden">
-          <ha-switch
-            .checked="${this._config.show_nutrition !== false}"
-            .configValue="${'show_nutrition'}"
-          ></ha-switch>
-        </ha-formfield>
-
-        <ha-formfield label="Toon tags">
-          <ha-switch
-            .checked="${this._config.show_tags !== false}"
-            .configValue="${'show_tags'}"
-          ></ha-switch>
-        </ha-formfield>
-
-        <ha-formfield label="Toon recept knop">
-          <ha-switch
-            .checked="${this._config.show_recipe_button !== false}"
-            .configValue="${'show_recipe_button'}"
-          ></ha-switch>
-        </ha-formfield>
-      </div>
-    `;
   }
 
   set hass(hass) {
     this._hass = hass;
     this._render();
+  }
+
+  _render() {
+    if (!this._config) return;
+    this.innerHTML = `
+      <div style="padding: 16px;">
+        <p>Entity: ${this._config.entity || 'niet ingesteld'}</p>
+      </div>
+    `;
   }
 }
 

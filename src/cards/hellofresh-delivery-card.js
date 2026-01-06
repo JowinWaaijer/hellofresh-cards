@@ -4,16 +4,14 @@
  */
 
 import { baseCardStyles, COLORS, FONTS, SPACING, BORDERS, SHADOWS } from '../styles/hellofresh-styles.js';
-import { formatDateTime, formatTimeUntil, getStatusClass, getStatusLabel, fireEvent } from '../utils/helpers.js';
+import { formatDateTime, formatTimeUntil, getStatusClass, getStatusLabel, isInTransit, fireEvent } from '../utils/helpers.js';
 
 const CARD_VERSION = '1.0.0';
 
 class HelloFreshDeliveryCard extends HTMLElement {
-  static get properties() {
-    return {
-      hass: {},
-      config: {},
-    };
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
   }
 
   set hass(hass) {
@@ -32,6 +30,7 @@ class HelloFreshDeliveryCard extends HTMLElement {
       compact: config.compact || false,
       ...config,
     };
+    this._updateCard();
   }
 
   getCardSize() {
@@ -39,9 +38,6 @@ class HelloFreshDeliveryCard extends HTMLElement {
   }
 
   connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-    }
     this._updateCard();
   }
 
@@ -62,6 +58,12 @@ class HelloFreshDeliveryCard extends HTMLElement {
     const estimatedDelivery = attrs.estimated_delivery;
     const product = attrs.product || '';
     const week = attrs.week || '';
+    const deliveryDate = entity.state; // The state contains the delivery datetime
+
+    // Determine if package is in transit (DELIVERED status but no sub_status and delivery date is today/future)
+    const inTransit = isInTransit(status, subStatus, deliveryDate);
+    // Determine actual display status
+    const isActuallyDelivered = status === 'DELIVERED' && !inTransit;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -167,6 +169,10 @@ class HelloFreshDeliveryCard extends HTMLElement {
           background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
         }
 
+        .status-in-transit {
+          background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
+        }
+
         .status-paused {
           background: linear-gradient(135deg, #757575 0%, #616161 100%);
         }
@@ -194,24 +200,26 @@ class HelloFreshDeliveryCard extends HTMLElement {
         }
       </style>
 
-      <div class="delivery-pill ${status === 'DELIVERED' ? 'status-delivered' : ''} ${status === 'PAUSED' ? 'status-paused' : ''}"
+      <div class="delivery-pill ${isActuallyDelivered ? 'status-delivered' : ''} ${inTransit ? 'status-in-transit' : ''} ${status === 'PAUSED' ? 'status-paused' : ''}"
            @click="${this._handleClick.bind(this)}">
         <div class="icon-container">
-          ${this._getStatusIcon(status)}
+          ${this._getStatusIcon(status, inTransit)}
         </div>
 
         <div class="content">
           <div class="title">
-            ${status === 'DELIVERED' ? getStatusLabel(status, subStatus) : deliverySlot || 'Levering gepland'}
+            ${inTransit ? 'Onderweg' : (isActuallyDelivered ? getStatusLabel(status, subStatus, deliveryDate) : deliverySlot || 'Levering gepland')}
           </div>
           <div class="subtitle">
-            ${status === 'DELIVERED'
-              ? product
-              : (estimatedDelivery ? formatDateTime(estimatedDelivery) : week)}
+            ${inTransit
+              ? (estimatedDelivery ? formatDateTime(estimatedDelivery) : deliverySlot)
+              : (isActuallyDelivered
+                ? product
+                : (estimatedDelivery ? formatDateTime(estimatedDelivery) : week))}
           </div>
         </div>
 
-        ${this._config.show_time_remaining && status === 'SCHEDULED' ? `
+        ${this._config.show_time_remaining && (status === 'SCHEDULED' || inTransit) ? `
           <div class="time-badge">
             <span class="status-indicator"></span>
             ${formatTimeUntil(entity.state)}
@@ -233,7 +241,11 @@ class HelloFreshDeliveryCard extends HTMLElement {
     this.shadowRoot.querySelector('.tracking-btn')?.addEventListener('click', (e) => this._openTracking(e));
   }
 
-  _getStatusIcon(status) {
+  _getStatusIcon(status, inTransit = false) {
+    // In transit = show truck icon
+    if (inTransit) {
+      return `<svg viewBox="0 0 24 24"><path d="M18 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z"/></svg>`;
+    }
     if (status === 'DELIVERED') {
       return `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
     }
@@ -283,58 +295,22 @@ class HelloFreshDeliveryCard extends HTMLElement {
 // Card Editor
 class HelloFreshDeliveryCardEditor extends HTMLElement {
   setConfig(config) {
-    this._config = config;
+    this._config = { ...config };
     this._render();
-  }
-
-  configChanged(newConfig) {
-    const event = new Event('config-changed', {
-      bubbles: true,
-      composed: true,
-    });
-    event.detail = { config: newConfig };
-    this.dispatchEvent(event);
-  }
-
-  _render() {
-    this.innerHTML = `
-      <div style="padding: 16px;">
-        <ha-entity-picker
-          .hass="${this._hass}"
-          .value="${this._config.entity || ''}"
-          .configValue="${'entity'}"
-          domain-filter="sensor"
-          label="Entity"
-          allow-custom-entity
-        ></ha-entity-picker>
-
-        <ha-formfield label="Toon tracking knop">
-          <ha-switch
-            .checked="${this._config.show_tracking_button !== false}"
-            .configValue="${'show_tracking_button'}"
-          ></ha-switch>
-        </ha-formfield>
-
-        <ha-formfield label="Toon resterende tijd">
-          <ha-switch
-            .checked="${this._config.show_time_remaining !== false}"
-            .configValue="${'show_time_remaining'}"
-          ></ha-switch>
-        </ha-formfield>
-
-        <ha-formfield label="Compact weergave">
-          <ha-switch
-            .checked="${this._config.compact || false}"
-            .configValue="${'compact'}"
-          ></ha-switch>
-        </ha-formfield>
-      </div>
-    `;
   }
 
   set hass(hass) {
     this._hass = hass;
     this._render();
+  }
+
+  _render() {
+    if (!this._config) return;
+    this.innerHTML = `
+      <div style="padding: 16px;">
+        <p>Entity: ${this._config.entity || 'niet ingesteld'}</p>
+      </div>
+    `;
   }
 }
 
