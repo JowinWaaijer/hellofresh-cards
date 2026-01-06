@@ -1,0 +1,37 @@
+{
+  "name": "hellofresh-cards",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Custom Home Assistant Lovelace cards for HelloFresh integration",
+  "main": "dist/hellofresh-cards.js",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c --watch",
+    "lint": "eslint src/",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jowinwaaijer/hellofresh-cards.git"
+  },
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "hellofresh",
+    "custom-card"
+  ],
+  "author": "Jowin Waaijer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jowinwaaijer/hellofresh-cards/issues"
+  },
+  "homepage": "https://github.com/jowinwaaijer/hellofresh-cards#readme",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.9.0"
+  },
+  "files": [
+    "dist/"
+  ]
+}
