@@ -59,8 +59,8 @@ class HelloFreshDeliveryCard extends HTMLElement {
     const week = attrs.week || '';
     const deliveryDate = entity.state; // The state contains the delivery datetime
 
-    // Determine if package is in transit (DELIVERED status but no sub_status and delivery date is today/future)
-    const inTransit = isInTransit(status, subStatus, deliveryDate);
+    // Determine if package is in transit (DELIVERED status but no sub_status and estimated delivery is in the future)
+    const inTransit = isInTransit(status, subStatus, estimatedDelivery);
     // Determine actual display status
     const isActuallyDelivered = status === 'DELIVERED' && !inTransit;
 
@@ -207,7 +207,7 @@ class HelloFreshDeliveryCard extends HTMLElement {
 
         <div class="content">
           <div class="title">
-            ${inTransit ? 'Onderweg' : (isActuallyDelivered ? getStatusLabel(status, subStatus, deliveryDate) : deliverySlot || 'Levering gepland')}
+            ${inTransit ? 'Onderweg' : (isActuallyDelivered ? getStatusLabel(status, subStatus, estimatedDelivery) : deliverySlot || 'Levering gepland')}
           </div>
           <div class="subtitle">
             ${inTransit

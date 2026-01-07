@@ -1,6 +1,6 @@
 {
   "name": "hellofresh-cards",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Custom Home Assistant Lovelace cards for HelloFresh integration",
   "main": "dist/hellofresh-cards.js",

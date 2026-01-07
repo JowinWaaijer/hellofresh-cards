@@ -1,6 +1,6 @@
 # HelloFresh Cards for Home Assistant
 
-[![Version](https://img.shields.io/badge/version-1.0.2-green.svg)](https://github.com/JowinWaaijer/hellofresh-cards/releases)
+[![Version](https://img.shields.io/badge/version-1.0.3-green.svg)](https://github.com/JowinWaaijer/hellofresh-cards/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
@@ -117,7 +117,7 @@ views:
 Open browser console (F12) to see loaded version:
 
 ```
-▶ HELLOFRESH-CARDS  v1.0.2
+▶ HELLOFRESH-CARDS  v1.0.3
     📦 Cards included:
        • hellofresh-delivery-card
        • hellofresh-meals-card

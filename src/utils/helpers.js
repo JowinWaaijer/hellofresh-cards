@@ -117,19 +117,18 @@ function isEmptySubStatus(subStatus) {
  * Get a friendly status label
  * @param {string} status - Delivery status
  * @param {string} subStatus - Delivery sub status
- * @param {string} deliveryDate - ISO date string of delivery
+ * @param {string} estimatedDelivery - Estimated delivery datetime from tracking
  * @returns {string} Friendly label
  */
-export function getStatusLabel(status, subStatus, deliveryDate) {
+export function getStatusLabel(status, subStatus, estimatedDelivery) {
   if (status === 'DELIVERED') {
     if (subStatus === 'RATING') return 'Wacht op beoordeling';
     if (subStatus === 'COOK_IT') return 'Klaar om te koken!';
-    // DELIVERED without sub_status but delivery date is today or future = in transit
-    if (isEmptySubStatus(subStatus) && deliveryDate) {
-      const delivery = new Date(deliveryDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (delivery >= today) {
+    // DELIVERED without sub_status = check if estimated_delivery time has passed
+    if (isEmptySubStatus(subStatus) && estimatedDelivery) {
+      const eta = new Date(estimatedDelivery);
+      const now = new Date();
+      if (now < eta) {
         return 'Onderweg';
       }
     }
@@ -144,18 +143,17 @@ export function getStatusLabel(status, subStatus, deliveryDate) {
  * Determine if delivery is actually in transit
  * @param {string} status - Delivery status
  * @param {string} subStatus - Sub status
- * @param {string} deliveryDate - ISO date string
+ * @param {string} estimatedDelivery - Estimated delivery datetime from tracking
  * @returns {boolean}
  */
-export function isInTransit(status, subStatus, deliveryDate) {
+export function isInTransit(status, subStatus, estimatedDelivery) {
   if (status !== 'DELIVERED') return false;
   if (!isEmptySubStatus(subStatus)) return false; // Has real sub_status = actually delivered
-  if (!deliveryDate) return false;
+  if (!estimatedDelivery) return false;
 
-  const delivery = new Date(deliveryDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return delivery >= today;
+  const eta = new Date(estimatedDelivery);
+  const now = new Date();
+  return now < eta;
 }
 
 /**
