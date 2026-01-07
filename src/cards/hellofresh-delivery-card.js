@@ -50,7 +50,7 @@ class HelloFreshDeliveryCard extends HTMLElement {
     }
 
     const attrs = entity.attributes;
-    const deliveryState = attrs.delivery_state || 'Preparing';
+    const deliveryState = attrs.state || 'Preparing';
     const subStatus = attrs.sub_status;
     const deliverySlot = attrs.delivery_slot || '';
     const trackingUrl = attrs.tracking_url;

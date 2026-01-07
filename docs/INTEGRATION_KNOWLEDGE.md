@@ -13,7 +13,7 @@ Dit document bevat alle kennis over de `hellofresh-homeassistant` integratie die
 | Attribute | Type | Beschrijving |
 |-----------|------|--------------|
 | `week` | string | ISO week format (bijv. "2026-W02") |
-| `delivery_state` | string | **Preparing**, **ON_THE_WAY**, **DELIVERED** |
+| `state` | string | **Preparing**, **ON_THE_WAY**, **DELIVERED** |
 | `status` | string | DELIVERED, SCHEDULED, PAUSED (legacy) |
 | `sub_status` | string | RATING, COOK_IT, of "NULL" (let op: string, niet null!) |
 | `cutoff_date` | string | Deadline voor wijzigingen |
@@ -68,12 +68,12 @@ Dit document bevat alle kennis over de `hellofresh-homeassistant` integratie die
 ### 4. `sensor.hellofresh_ingredients_count`
 **State:** Integer (altijd 0 - endpoint niet ontdekt)
 
-## Delivery State - NIEUW!
+## State Attribuut - NIEUW!
 
-Het `delivery_state` attribuut geeft direct de leveringsstatus aan:
+Het `state` attribuut geeft direct de leveringsstatus aan:
 
-| delivery_state | Betekenis | Card weergave |
-|----------------|-----------|---------------|
+| state | Betekenis | Card weergave |
+|-------|-----------|---------------|
 | `Preparing` | Levering wordt voorbereid | 📦 Groene pill |
 | `ON_THE_WAY` | Onderweg naar klant | 🚚 Oranje pill |
 | `DELIVERED` | Afgeleverd | ✓ Groene pill |
