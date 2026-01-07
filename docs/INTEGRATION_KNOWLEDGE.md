@@ -13,7 +13,8 @@ Dit document bevat alle kennis over de `hellofresh-homeassistant` integratie die
 | Attribute | Type | Beschrijving |
 |-----------|------|--------------|
 | `week` | string | ISO week format (bijv. "2026-W02") |
-| `status` | string | DELIVERED, SCHEDULED, PAUSED |
+| `delivery_state` | string | **Preparing**, **ON_THE_WAY**, **DELIVERED** |
+| `status` | string | DELIVERED, SCHEDULED, PAUSED (legacy) |
 | `sub_status` | string | RATING, COOK_IT, of "NULL" (let op: string, niet null!) |
 | `cutoff_date` | string | Deadline voor wijzigingen |
 | `product` | string | Bijv. "4-maaltijdenbox - 2 personen" |
@@ -67,20 +68,24 @@ Dit document bevat alle kennis over de `hellofresh-homeassistant` integratie die
 ### 4. `sensor.hellofresh_ingredients_count`
 **State:** Integer (altijd 0 - endpoint niet ontdekt)
 
-## Status Lifecycle - BELANGRIJK!
+## Delivery State - NIEUW!
 
-De `status` en `sub_status` combinatie bepaalt de werkelijke staat:
+Het `delivery_state` attribuut geeft direct de leveringsstatus aan:
 
-| Status | Sub-Status | Delivery Date | Betekenis | Card weergave |
-|--------|-----------|---------------|-----------|---------------|
-| `DELIVERED` | `"NULL"` | >= vandaag | **Onderweg** (aan vervoerder gegeven) | 🚚 Oranje pill |
-| `DELIVERED` | `"NULL"` | < vandaag | Geleverd (zonder rating) | ✓ Groene pill |
-| `DELIVERED` | `RATING` | - | Geleverd, wacht op beoordeling | ✓ Groene pill |
-| `DELIVERED` | `COOK_IT` | - | Geleverd, klaar om te koken | ✓ Groene pill |
-| `SCHEDULED` | - | - | Geplande levering (toekomst) | 🚚 Groene pill |
-| `PAUSED` | - | - | Gepauzeerd voor deze week | ⏸ Grijze pill |
+| delivery_state | Betekenis | Card weergave |
+|----------------|-----------|---------------|
+| `Preparing` | Levering wordt voorbereid | 📦 Groene pill |
+| `ON_THE_WAY` | Onderweg naar klant | 🚚 Oranje pill |
+| `DELIVERED` | Afgeleverd | ✓ Groene pill |
 
-**Let op:** `sub_status` is de **string** `"NULL"` wanneer leeg, niet een echte `null` waarde!
+### Sub-status (na levering)
+| sub_status | Betekenis |
+|------------|-----------|
+| `RATING` | Wacht op beoordeling |
+| `COOK_IT` | Klaar om te koken |
+| `"NULL"` | Geen actie vereist |
+
+**Let op:** `sub_status` kan de **string** `"NULL"` zijn wanneer leeg, niet een echte `null` waarde!
 
 ## Belangrijke Opmerkingen
 

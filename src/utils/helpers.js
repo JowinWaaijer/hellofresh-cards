@@ -87,73 +87,60 @@ export function getTagClass(tagName) {
 }
 
 /**
- * Get status badge class based on delivery status
- * @param {string} status - Delivery status
+ * Get status badge class based on delivery state
+ * @param {string} deliveryState - Delivery state (Preparing, ON_THE_WAY, DELIVERED)
  * @returns {string} CSS class name
  */
-export function getStatusClass(status) {
-  switch (status?.toUpperCase()) {
+export function getStatusClass(deliveryState) {
+  switch (deliveryState?.toUpperCase()) {
     case 'DELIVERED':
       return 'status-badge--delivered';
-    case 'SCHEDULED':
+    case 'ON_THE_WAY':
+      return 'status-badge--in-transit';
+    case 'PREPARING':
       return 'status-badge--scheduled';
-    case 'PAUSED':
-      return 'status-badge--paused';
     default:
       return 'status-badge--scheduled';
   }
 }
 
 /**
- * Check if sub_status is effectively empty
- * @param {string} subStatus - Sub status value
- * @returns {boolean} True if sub_status is empty/null
- */
-function isEmptySubStatus(subStatus) {
-  return !subStatus || subStatus === 'NULL' || subStatus === 'null' || subStatus === 'None';
-}
-
-/**
- * Get a friendly status label
- * @param {string} status - Delivery status
- * @param {string} subStatus - Delivery sub status
- * @param {string} estimatedDelivery - Estimated delivery datetime from tracking
+ * Get a friendly status label based on delivery_state
+ * @param {string} deliveryState - Delivery state (Preparing, ON_THE_WAY, DELIVERED)
+ * @param {string} subStatus - Delivery sub status (optional, for post-delivery states)
  * @returns {string} Friendly label
  */
-export function getStatusLabel(status, subStatus, estimatedDelivery) {
-  if (status === 'DELIVERED') {
-    if (subStatus === 'RATING') return 'Wacht op beoordeling';
-    if (subStatus === 'COOK_IT') return 'Klaar om te koken!';
-    // DELIVERED without sub_status = check if estimated_delivery time has passed
-    if (isEmptySubStatus(subStatus) && estimatedDelivery) {
-      const eta = new Date(estimatedDelivery);
-      const now = new Date();
-      if (now < eta) {
-        return 'Onderweg';
-      }
-    }
-    return 'Geleverd';
+export function getStatusLabel(deliveryState, subStatus) {
+  switch (deliveryState?.toUpperCase()) {
+    case 'DELIVERED':
+      if (subStatus === 'RATING') return 'Wacht op beoordeling';
+      if (subStatus === 'COOK_IT') return 'Klaar om te koken!';
+      return 'Geleverd';
+    case 'ON_THE_WAY':
+      return 'Onderweg';
+    case 'PREPARING':
+      return 'Wordt voorbereid';
+    default:
+      return deliveryState || 'Onbekend';
   }
-  if (status === 'SCHEDULED') return 'Gepland';
-  if (status === 'PAUSED') return 'Gepauzeerd';
-  return status;
 }
 
 /**
- * Determine if delivery is actually in transit
- * @param {string} status - Delivery status
- * @param {string} subStatus - Sub status
- * @param {string} estimatedDelivery - Estimated delivery datetime from tracking
+ * Determine if delivery is in transit
+ * @param {string} deliveryState - Delivery state
  * @returns {boolean}
  */
-export function isInTransit(status, subStatus, estimatedDelivery) {
-  if (status !== 'DELIVERED') return false;
-  if (!isEmptySubStatus(subStatus)) return false; // Has real sub_status = actually delivered
-  if (!estimatedDelivery) return false;
+export function isInTransit(deliveryState) {
+  return deliveryState?.toUpperCase() === 'ON_THE_WAY';
+}
 
-  const eta = new Date(estimatedDelivery);
-  const now = new Date();
-  return now < eta;
+/**
+ * Determine if delivery is delivered
+ * @param {string} deliveryState - Delivery state
+ * @returns {boolean}
+ */
+export function isDelivered(deliveryState) {
+  return deliveryState?.toUpperCase() === 'DELIVERED';
 }
 
 /**

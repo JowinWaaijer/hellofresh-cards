@@ -4,7 +4,7 @@
  */
 
 import { baseCardStyles, COLORS, FONTS, SPACING, BORDERS, SHADOWS } from '../styles/hellofresh-styles.js';
-import { formatDateTime, formatTimeUntil, getStatusClass, getStatusLabel, isInTransit, fireEvent } from '../utils/helpers.js';
+import { formatDateTime, formatTimeUntil, getStatusClass, getStatusLabel, isInTransit, isDelivered, fireEvent } from '../utils/helpers.js';
 import { VERSION, logCardVersion } from '../version.js';
 
 class HelloFreshDeliveryCard extends HTMLElement {
@@ -50,19 +50,17 @@ class HelloFreshDeliveryCard extends HTMLElement {
     }
 
     const attrs = entity.attributes;
-    const status = attrs.status || 'SCHEDULED';
+    const deliveryState = attrs.delivery_state || 'Preparing';
     const subStatus = attrs.sub_status;
     const deliverySlot = attrs.delivery_slot || '';
     const trackingUrl = attrs.tracking_url;
     const estimatedDelivery = attrs.estimated_delivery;
     const product = attrs.product || '';
     const week = attrs.week || '';
-    const deliveryDate = entity.state; // The state contains the delivery datetime
 
-    // Determine if package is in transit (DELIVERED status but no sub_status and estimated delivery is in the future)
-    const inTransit = isInTransit(status, subStatus, estimatedDelivery);
-    // Determine actual display status
-    const isActuallyDelivered = status === 'DELIVERED' && !inTransit;
+    // Use the new delivery_state attribute for status detection
+    const inTransit = isInTransit(deliveryState);
+    const actuallyDelivered = isDelivered(deliveryState);
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -199,26 +197,24 @@ class HelloFreshDeliveryCard extends HTMLElement {
         }
       </style>
 
-      <div class="delivery-pill ${isActuallyDelivered ? 'status-delivered' : ''} ${inTransit ? 'status-in-transit' : ''} ${status === 'PAUSED' ? 'status-paused' : ''}"
+      <div class="delivery-pill ${actuallyDelivered ? 'status-delivered' : ''} ${inTransit ? 'status-in-transit' : ''}"
            @click="${this._handleClick.bind(this)}">
         <div class="icon-container">
-          ${this._getStatusIcon(status, inTransit)}
+          ${this._getStatusIcon(deliveryState)}
         </div>
 
         <div class="content">
           <div class="title">
-            ${inTransit ? 'Onderweg' : (isActuallyDelivered ? getStatusLabel(status, subStatus, estimatedDelivery) : deliverySlot || 'Levering gepland')}
+            ${getStatusLabel(deliveryState, subStatus)}
           </div>
           <div class="subtitle">
-            ${inTransit
-              ? (estimatedDelivery ? formatDateTime(estimatedDelivery) : deliverySlot)
-              : (isActuallyDelivered
-                ? product
-                : (estimatedDelivery ? formatDateTime(estimatedDelivery) : week))}
+            ${actuallyDelivered
+              ? product
+              : (estimatedDelivery ? formatDateTime(estimatedDelivery) : deliverySlot || week)}
           </div>
         </div>
 
-        ${this._config.show_time_remaining && (status === 'SCHEDULED' || inTransit) ? `
+        ${this._config.show_time_remaining && !actuallyDelivered ? `
           <div class="time-badge">
             <span class="status-indicator"></span>
             ${formatTimeUntil(entity.state)}
@@ -240,19 +236,19 @@ class HelloFreshDeliveryCard extends HTMLElement {
     this.shadowRoot.querySelector('.tracking-btn')?.addEventListener('click', (e) => this._openTracking(e));
   }
 
-  _getStatusIcon(status, inTransit = false) {
-    // In transit = show truck icon
-    if (inTransit) {
-      return `<svg viewBox="0 0 24 24"><path d="M18 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z"/></svg>`;
+  _getStatusIcon(deliveryState) {
+    switch (deliveryState?.toUpperCase()) {
+      case 'DELIVERED':
+        // Checkmark for delivered
+        return `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
+      case 'ON_THE_WAY':
+        // Truck icon for in transit
+        return `<svg viewBox="0 0 24 24"><path d="M18 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z"/></svg>`;
+      case 'PREPARING':
+      default:
+        // Box/package icon for preparing
+        return `<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2h2v-4h4v-2h-4V7h-2v4H8v2h4z"/></svg>`;
     }
-    if (status === 'DELIVERED') {
-      return `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
-    }
-    if (status === 'PAUSED') {
-      return `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
-    }
-    // Delivery truck icon for scheduled
-    return `<svg viewBox="0 0 24 24"><path d="M18 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z"/></svg>`;
   }
 
   _handleClick() {
