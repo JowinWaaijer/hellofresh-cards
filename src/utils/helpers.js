@@ -192,3 +192,79 @@ export function fireEvent(element, type, detail = {}) {
   });
   element.dispatchEvent(event);
 }
+
+/**
+ * Format THT date to short format
+ * @param {string} dateString - ISO date string (YYYY-MM-DD)
+ * @returns {string} Formatted date like "20 jan"
+ */
+export function formatThtDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('nl-NL', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+/**
+ * Get THT status based on days until expiry
+ * @param {string} dateString - ISO date string (YYYY-MM-DD)
+ * @returns {'ok' | 'warning' | 'expired'} Status
+ */
+export function getThtStatus(dateString) {
+  if (!dateString) return 'ok';
+  const now = new Date();
+  const tht = new Date(dateString);
+
+  // Strip time, compare dates only
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const thtDate = new Date(tht.getFullYear(), tht.getMonth(), tht.getDate());
+  const daysUntil = Math.round((thtDate - today) / (1000 * 60 * 60 * 24));
+
+  if (daysUntil < 0) return 'expired';
+  if (daysUntil <= 2) return 'warning';
+  return 'ok';
+}
+
+/**
+ * Get current ISO week string
+ * @returns {string} Week string like "2026-W03"
+ */
+export function getCurrentIsoWeek() {
+  const now = new Date();
+  const year = now.getFullYear();
+
+  // Calculate ISO week number
+  const jan4 = new Date(year, 0, 4);
+  const startOfYear = new Date(year, 0, 1);
+  const daysSinceJan4 = Math.floor((now - jan4) / (1000 * 60 * 60 * 24));
+  const weekNumber = Math.ceil((daysSinceJan4 + jan4.getDay() + 1) / 7);
+
+  // Handle edge cases for year boundaries
+  const adjustedWeek = weekNumber < 1 ? 52 : (weekNumber > 52 ? 1 : weekNumber);
+  const adjustedYear = weekNumber < 1 ? year - 1 : (weekNumber > 52 ? year + 1 : year);
+
+  return `${adjustedYear}-W${String(adjustedWeek).padStart(2, '0')}`;
+}
+
+/**
+ * Get default THT date (delivery date + 5 days)
+ * @param {string} deliveryDate - ISO date string for delivery
+ * @returns {string} ISO date string (YYYY-MM-DD)
+ */
+export function getDefaultThtDate(deliveryDate) {
+  const base = deliveryDate ? new Date(deliveryDate) : new Date();
+  base.setDate(base.getDate() + 5);
+  return base.toISOString().split('T')[0];
+}
+
+/**
+ * Create a short key for a meal name (max 20 chars)
+ * @param {string} mealName - Full meal name
+ * @returns {string} Short key
+ */
+export function getMealKey(mealName) {
+  if (!mealName) return '';
+  return mealName.substring(0, 20).trim();
+}

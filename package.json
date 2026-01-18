@@ -1,6 +1,6 @@
 {
   "name": "hellofresh-cards",
-  "version": "1.0.8",
+  "version": "1.2.0",
   "type": "module",
   "description": "Custom Home Assistant Lovelace cards for HelloFresh integration",
   "main": "dist/hellofresh-cards.js",
@@ -26,6 +26,9 @@
     "url": "https://github.com/jowinwaaijer/hellofresh-cards/issues"
   },
   "homepage": "https://github.com/jowinwaaijer/hellofresh-cards#readme",
+  "dependencies": {
+    "sortablejs": "^1.15.6"
+  },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",

@@ -37,6 +37,14 @@ export const COLORS = {
   tagFamily: '#FFF3E0',
   tagPremium: '#FFF8E1',
   tagVeggie: '#E8F5E9',
+
+  // THT badge colors
+  thtOk: '#067A46',
+  thtOkBg: '#E8F5E9',
+  thtWarning: '#F57C00',
+  thtWarningBg: '#FFF3E0',
+  thtExpired: '#E53935',
+  thtExpiredBg: '#FFEBEE',
 };
 
 export const FONTS = {
@@ -220,6 +228,248 @@ export const baseCardStyles = `
   @keyframes skeleton-loading {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+  }
+
+  /* THT Badge Styles */
+  .tht-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+  }
+
+  .tht-badge--ok {
+    background: ${COLORS.thtOkBg};
+    color: ${COLORS.thtOk};
+  }
+
+  .tht-badge--warning {
+    background: ${COLORS.thtWarningBg};
+    color: ${COLORS.thtWarning};
+  }
+
+  .tht-badge--expired {
+    background: ${COLORS.thtExpiredBg};
+    color: ${COLORS.thtExpired};
+  }
+
+  .tht-badge svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+  }
+
+  /* Edit Mode Button */
+  .edit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .edit-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .edit-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: white;
+  }
+
+  .edit-btn--active {
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  /* Drag Handle */
+  .drag-handle {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+  }
+
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+
+  .drag-handle svg {
+    width: 16px;
+    height: 16px;
+    fill: white;
+  }
+
+  .edit-mode .drag-handle {
+    opacity: 1;
+  }
+
+  /* Dragging state */
+  .meal-card.sortable-chosen {
+    opacity: 0.9;
+    transform: scale(1.02);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .meal-card.sortable-ghost {
+    opacity: 0.4;
+  }
+
+  /* Date picker overlay */
+  .date-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .date-picker-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 280px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .date-picker-modal h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    color: ${COLORS.textPrimary};
+  }
+
+  .date-picker-modal input[type="date"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid ${COLORS.border};
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+  }
+
+  .date-selects {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .date-select {
+    padding: 12px;
+    border: 1px solid ${COLORS.border};
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .date-select--month {
+    flex: 2;
+  }
+
+  .date-select:focus {
+    outline: none;
+    border-color: ${COLORS.primary};
+  }
+
+  .date-picker-modal .btn-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .date-picker-modal .btn-group button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease;
+  }
+
+  .date-picker-modal .btn-cancel {
+    background: ${COLORS.background};
+    color: ${COLORS.textPrimary};
+  }
+
+  .date-picker-modal .btn-cancel:hover {
+    background: ${COLORS.border};
+  }
+
+  .date-picker-modal .btn-save {
+    background: ${COLORS.primary};
+    color: white;
+  }
+
+  .date-picker-modal .btn-save:hover {
+    background: ${COLORS.primaryDark};
+  }
+
+  .date-picker-modal .btn-clear {
+    background: transparent;
+    color: ${COLORS.thtExpired};
+    border: 1px solid ${COLORS.thtExpired};
+  }
+
+  .date-picker-modal .btn-clear:hover {
+    background: ${COLORS.thtExpiredBg};
+  }
+
+  /* Reset order button */
+  .reset-order-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: transparent;
+    border: 1px solid ${COLORS.border};
+    border-radius: 8px;
+    font-size: 12px;
+    color: ${COLORS.textSecondary};
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .reset-order-btn:hover {
+    background: ${COLORS.background};
+    color: ${COLORS.textPrimary};
+  }
+
+  .reset-order-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
   }
 `;
 

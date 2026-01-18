@@ -3,7 +3,7 @@
  * Central version management for all cards
  */
 
-export const VERSION = '1.0.8';
+export const VERSION = '1.2.0';
 export const CARD_NAME = 'HELLOFRESH-CARDS';
 
 /**
