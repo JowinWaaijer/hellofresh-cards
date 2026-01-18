@@ -104,6 +104,7 @@ export function getStatusClass(deliveryState) {
     case 'ON_THE_WAY':
       return 'status-badge--in-transit';
     case 'PREPARING':
+    case 'RUNNING':
       return 'status-badge--scheduled';
     default:
       return 'status-badge--scheduled';
@@ -126,6 +127,8 @@ export function getStatusLabel(deliveryState, subStatus) {
       return 'Onderweg';
     case 'PREPARING':
       return 'Wordt voorbereid';
+    case 'RUNNING':
+      return 'Menu aanpasbaar';
     default:
       return deliveryState || 'Onbekend';
   }
