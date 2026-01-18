@@ -38,6 +38,7 @@ export function formatDateTime(dateString, locale = 'nl-NL') {
 
 /**
  * Format time remaining until a date
+ * Uses calendar days (midnight to midnight) for intuitive day counting
  * @param {string} dateString - ISO date string
  * @returns {string} Human readable time remaining
  */
@@ -49,11 +50,16 @@ export function formatTimeUntil(dateString) {
 
   if (diff < 0) return 'Geleverd';
 
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  // Calculate calendar days (strip time, compare dates only)
+  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetDate = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const days = Math.round((targetDate - nowDate) / (1000 * 60 * 60 * 24));
 
   if (days > 1) return `Over ${days} dagen`;
-  if (days === 1) return `Morgen`;
+  if (days === 1) return 'Morgen';
+
+  // Same calendar day - show hours remaining
+  const hours = Math.floor(diff / (1000 * 60 * 60));
   if (hours > 1) return `Over ${hours} uur`;
   if (hours === 1) return `Over 1 uur`;
   return 'Binnenkort';
